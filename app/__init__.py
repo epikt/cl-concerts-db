@@ -49,6 +49,9 @@ def create_app(config_class=Config):
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
 
+    from app.viz import bp as viz_bp
+    app.register_blueprint(viz_bp, url_prefix='/viz')
+
     from app.api import bp as api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
 
