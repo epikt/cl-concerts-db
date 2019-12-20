@@ -15,9 +15,10 @@ class User(UserMixin, db.Model):
     profile_id = db.Column(db.Integer, db.ForeignKey('profile.id'))
     entries_added = db.relationship('History', backref='user', lazy='dynamic')
        
+
     def __repr__(self):
-        return 'User(first_name="{}",last_name="{}",email="{}")'.format(self.first_name,
-                       self.last_name,self.email)
+        return "user_first_name:'{}',user_last_name:'{}',user_email:'{}'".format(self.first_name,
+                                 self.last_name,self.email)
     def get_full_name(self):
         return '{}, {}'.format(self.last_name,self.first_name) if self.last_name else self.first_name
     
@@ -279,7 +280,7 @@ class MusicalPiece(db.Model):
     composers  = db.relationship('Person',
                     secondary=composer,
                     backref='musical_pieces')   
-    instrumental_lineup =  db.Column(db.String(200))
+    #instrumental_lineup =  db.Column(db.String(200))
     text  = db.Column(db.String(200))
     instrument_id = db.Column(db.Integer, db.ForeignKey('instrument.id'))
     def get_name(self):
@@ -345,7 +346,7 @@ class MusicalEnsembleType(db.Model):
     def get_name(self):
         return "{}".format(self.name)
     def __repr__(self):
-        return 'MusicalPiece(name="{}")'.format(self.name) 
+        return 'MusicalEnsembleType(name="{}")'.format(self.name) 
 
 class MusicalEnsemble(db.Model):
     id = db.Column(db.Integer, primary_key=True)   
@@ -357,7 +358,7 @@ class MusicalEnsemble(db.Model):
     def get_name(self):
         return "{}".format(self.name)
     def __repr__(self):
-        return 'MusicalPiece(name="{}")'.format(self.name) 
+        return 'MusicalEnsemble(name="{}")'.format(self.name) 
       
 
 class MusicalEnsembleMember(db.Model):

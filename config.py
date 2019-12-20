@@ -27,6 +27,7 @@ class Config(object):
     # where the uploaded files wil be stored. There an 'uploads' directory will be created
     UPLOADS_DEFAULT_DEST = basedir
     # language on which is expected to have translations.
+    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
     LANGUAGES = ['es', 'en']
     def __init__(self):
        print(os.path.join(basedir, '.env'))    
