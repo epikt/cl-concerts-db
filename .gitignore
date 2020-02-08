@@ -40,3 +40,4 @@ microblog.log*
 logs/
 .spyproject/
 .env
+.idea
