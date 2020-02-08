@@ -28,13 +28,28 @@ Enter to mysql (usually just typing mysql as root) and create the DB
 That would create an empty database called *cl_concerts_db* with a user called *clcuser* with password *test123*. You can change any of this names, but you should adapt the *DATABASE_URL* to match with them 
 
 ### Setting up the environment
-There is some environmental variables which are needed to configure the application. This can be set as environmental variable or you can create a *.env* file under *cl-concertd-db/* with the entries that you need to set. The list of variables and their defaults and descriptions can be found in the *config.py file*, but the bare minimum you'll need to configure are:
-`~#cat .env `
-`SECRET_KEY=set-any-phrase-here-it-wll-be-used-as-your-secret`  
-`DATABASE_URL=mysql+pymysql://clcuser:test123@localhost/cl_concerts_db`  
-Additionally, as for any flask application, you have to set your FLASK_APP for the flask commands are able to run:
-`export FLASK_APP=<where your code is located>/cl-concerts-db/cl-concerts-db.py`  
+There is some environmental variables which are needed to configure the application. This can be set as environmental variable or you can create a *.env* file under *cl-concertd-db/* with the entries that you need to set. The list of variables and their defaults and descriptions can be found in the *config.py file*, but the bare minimum you'll need to configure are:\
+`~#cat .env `\
+`SECRET_KEY=set-any-phrase-here-it-wll-be-used-as-your-secret`  \
+`DATABASE_URL=mysql+pymysql://clcuser:test123@localhost/cl_concerts_db` \
 
+
+### Installation with real data (recommended for testing)
+For testing, it's better to have access to the real data. 
+- First, from the dropbox with the backups get the uploaded files (you can download the complete 'uploads' directory as a zip and then uncompress it under cl-concerts-db directory.
+- The, download from the backup dropbox the last *backup_clconcertsdb_<date>.sql.bz2* file. Uncompress it and from the shell run:
+`mysql -u clcuser -p`  
+`MariaDB [(none)]> use cl_concerts_db;`  
+`MariaDB [cl_concerts_db]> source <path to the sql file>`  
+`MariaDB [cl_concerts_db]> commit;`  
+This should populate the DB. Now you're ready to start the app. Now go the cl-concerts-db directory, from there you can execute:
+`flask shell`
+for get into an interactive python session with all the imports and settings needed by flask. In the shell you can try running
+`from app.models import Event
+Event.query.all()`
+for a quick test  or, instead of the shell run
+`flask run`  
+To start the service. The webpage dispayed on [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
 
 ### Installation (from scratch to start with an empty DB) 
 From under *cl-concerts-db* run the command:
@@ -52,18 +67,14 @@ This will create the basic profiles. Now we need a user which will be able to cr
 `u.set_password('test123') `  
 `db.session.add(u)`  
 `db.session.commit();`  
-Now, exit from the flask shell and run:
-`flask run`
-You should be able to see the webpage dispayed on [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
 
-### Installation with real data (recommended for testing)
-For testing, it's better to have access to the real data. 
-- First, from the dropbox with the backups get the uploaded files (you can download the complete 'uploads' directory as a zip and then uncompress it under cl-concerts-db directory.
-- The, download from the backup dropbox the last *backup_clconcertsdb_<date>.sql.bz2* file. Uncompress it and from the shell run:
-`mysql -u clcuser -p`  
-`MariaDB [(none)]> use cl_concerts_db;`  
-`MariaDB [cl_concerts_db]> source <path to the sql file>`  
-`MariaDB [cl_concerts_db]> commit;`  
-This should populate the DB. Now you're ready to start the app. Run:
-`flask run`  
-You should be able to see the webpage dispayed on [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
+### Example of how to create a new Administrator user:
+In `flask shell` run:
+`from app.models import User,Profile  
+newuser=User()  
+newuser.first_name='MyName'  
+newuser.last_name='MyLastName'  
+newuser.email='myemail@email.com'  
+newuser.profile=Profile.query.filter_by(name='Administrador').first()  
+newuser.set_password('my password') 
+db.session.commit()  `
