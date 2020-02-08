@@ -41,6 +41,8 @@ def get_event_json():
                 "performance_id" : performace.id,
                 "premiere" : performance.premiere_type.name,
                 "musical_piece_name" 	: performance.musical_piece.name,
+                "composers": [ {
+                "cmpo}]
     			"composer_names"   : "Ludovico",
     					"componer_last_name"    : "Elbato",
     					"componser_nationalities" : ["Suecia","Austria"],
@@ -54,7 +56,7 @@ def get_event_json():
                 
                 }
                     for performace in event.performances.all() ]
-        
+         
 """"
 event
 {
