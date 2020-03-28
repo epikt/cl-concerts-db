@@ -49,7 +49,7 @@ def get_events_json():
             json_event["event_information"] =  event.information
             json_event["media_links"] = [{ "medialink_name": ml.filename, "medialink_description": ml.description } for ml in event.medialinks] 
             json_event["participants"] = get_participant_list(event.participants.all())
-            json_event["performances"]: [ { 
+            json_event["performances"] = [ { 
                     "performance_id" : performance.id,
                     "premiere" : performance.premiere_type.name,
                     "musical_piece_name" 	: performance.musical_piece.name,
@@ -58,7 +58,7 @@ def get_events_json():
                             "composer_last_name" : composer.last_name,
                             "composer_nationalities" : [nationality.name  for nationality in composer.nationalities]    }
                             for composer in performance.musical_piece.composers ],
-                    "participants" : get_participant_list(performance.get_participant_list)
+                    "participants" : get_participant_list(performance.participants)
                     }
                     for performance in event.performances.all()     ]
             json_events.append(json_event)
