@@ -10,6 +10,16 @@ import json
 #from app import elasticsearch
 
 #def export_to_elasticsearch:
+
+def get_musical_ensemble_info(participant):
+    musical_ensemble_info={}
+    if participant.musical_ensemble:
+        musical_ensemble_info["musical_ensemble_name"] = participant.musical_ensemble.name
+        musical_ensemble_info["musical_ensemble_type"] = participant.musical_ensemble.musical_ensemble_type.name if participant.musical_ensemble.musical_ensemble_type else None
+        return musical_ensemble_info
+    else:
+        return {}
+
 def get_participant_list(participants):
     participants_list=[]
     if participants:
@@ -23,7 +33,7 @@ def get_participant_list(participants):
                         "participant_nationalities" : [ n.name for n in participant.person.nationalities ] if participant.person else [],
                         "paticipant_activity" : participant.activity.name if participant.activity else None,
                         "paticipant_instrument" : (participant.activity.instrument.name if participant.activity.instrument else None ) if participant.activity else None,
-                        "paticipant_musical_ensemble" : participant.musical_ensemble.name if participant.musical_ensemble else None })
+                        "paticipant_musical_ensemble" : get_musical_ensemble_info(participant) })
             except Exception as ex:
                 print(participant)
                 raise ex
@@ -31,6 +41,7 @@ def get_participant_list(participants):
  
 def get_events_json():
     """Get the high level json for exporting to ES"""
+    print("Iterating through events")
     events=Event.query.all()
     json_events=[]
     try:
@@ -56,6 +67,7 @@ def get_events_json():
                     "composers": [ { 
                             "composer_first_name" : composer.first_name,
                             "composer_last_name" : composer.last_name,
+                            "composer_gender" : composer.gender.name if composer.gender else None,
                             "composer_nationalities" : [nationality.name  for nationality in composer.nationalities]    }
                             for composer in performance.musical_piece.composers ],
                     "participants" : get_participant_list(performance.participants)
@@ -66,7 +78,10 @@ def get_events_json():
         print(event.id)
         raise ex
     with open('events.json', 'w') as fp:
-        json.dump(json_events, fp)
+        print("Finished exporting {} events".format(json_events.__len__()))
+        print("Preparing json dump and writing it to a file")
+        json.dump(json_events,fp,sort_keys=True,indent=4, separators=(',', ': '))
+        print("Export done")
 
 
 """"
