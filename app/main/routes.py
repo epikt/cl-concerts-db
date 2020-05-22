@@ -55,9 +55,13 @@ def getStringForModel(model):
                     'Location'        :  _('Lugares'),
                     'Organization'    :  _('Organizaciones'),
                     'Person'          :  _('Personas'),
+                    'Participant'     :  _('Participante'),
+                    'MediaLink'       :  _('Archivo'),
                     'MusicalPiece'    :  _('Obras Musicales'),
                     'MusicalEnsemble'     :  _('Agrupaciones Musicales'),
-                    'MusicalEnsembleType' :  _('Tipo de Agrupaciones Musicales')                    
+                    'MusicalEnsembleType' :  _('Tipo de Agrupaciones Musicales'),
+                    'Performance'     : _('Participación'),
+                    'MusicalEnsembleMember' : _('Miembro de Agrupación Musical')                    
                     }    
     return string4model[model]
 
@@ -403,9 +407,10 @@ def getHistoryTable():
                               "description" : entry.description })
     return jsonify(data)    
 
-
 def getTableData(requests,dbmodel,searchables):
-    button_string='<a href="{}" class="btn btn-default btn-sm" role="button"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>'
+    edit_button_string='<a href="{}" class="btn btn-default btn-sm" role="button"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>'
+    delete_button_string='<a onclick="checkDeleteElement(\'{}\',\'{}\')" class="btn btn-default btn-sm" role="button"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>'
+
     limit = request.args.get('limit', 10, type=int)
     offset = request.args.get('offset', 0, type=int)
     order = request.args.get('order', '', type=str)
@@ -418,12 +423,15 @@ def getTableData(requests,dbmodel,searchables):
     entries=query.limit(limit).offset(offset).all()
     for entry in entries:
         data["rows"].append({ "name" : entry.get_name(),
-                              "editlink" : button_string.format(url_for('main.Edit{}'.format(dbmodel.__name__),id=entry.id))
+                              "editlink" : edit_button_string.format(url_for('main.Edit{}'.format(dbmodel.__name__),id=entry.id)),
+                              "deletelink" : delete_button_string.format(dbmodel.__name__,entry.id)
                              })
     return jsonify(data)  
 
 def getMusicalPieceTableData(requests):
     button_string='<a href="{}" class="btn btn-default btn-sm" role="button"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>'
+    delete_button_string='<a onclick="checkDeleteElement(\'{}\',\'{}\')" class="btn btn-default btn-sm" role="button"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>'
+
     limit = request.args.get('limit', 10, type=int)
     offset = request.args.get('offset', 0, type=int)
     order = request.args.get('order', '', type=str)
@@ -434,25 +442,40 @@ def getMusicalPieceTableData(requests):
     entries=query.limit(limit).offset(offset).all()
     for entry in entries:
         data["rows"].append({ "name" : entry.get_name(),
-                              "editlink" : button_string.format(url_for('main.EditMusicalPiece',id=entry.id))
+                              "editlink" : button_string.format(url_for('main.EditMusicalPiece',id=entry.id)),
+                               "deletelink" : delete_button_string.format('MusicalPiece',entry.id)
                              })
     return jsonify(data)  
 
 def getEventTableData(requests):
     button_string='<a href="{}" class="btn btn-default btn-sm" role="button"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>'
+    delete_button_string='<a onclick="checkDeleteElement(\'{}\',\'{}\')" class="btn btn-default btn-sm" role="button"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>'
+
     limit = request.args.get('limit', 10, type=int)
     offset = request.args.get('offset', 0, type=int)
     order = request.args.get('order', '', type=str)
-    search = '%{}%'.format(request.args.get('search', '', type=str))  
-    query=db.session.query(Event).join(EventType,Event.event_type).join(Location,Event.location).filter(or_(  Event.year.contains(search),
-                                                                                EventType.name.ilike(search),
-                                                                                Event.name.ilike(search),
-                                                                                Location.name.ilike(search)))
+    search = '{}'.format(request.args.get('search', '', type=str))    
+    
+    or_search_term=[]
+    for search_term in search.split(' '):
+        filters = []
+        if search_term.isnumeric():
+            filters.append(Event.year.contains(str(int(search_term))))
+            filters.append(Event.month.contains(str(int(search_term))))
+            filters.append(Event.day.contains(str(int(search_term))))
+        filters.append(EventType.name.contains(search_term))
+        filters.append(Event.name.contains(search_term))
+        filters.append(Location.name.contains(search_term))
+        or_search_term.append(or_(*filters))
+    
+        
+    query=db.session.query(Event).join(EventType,Event.event_type).join(Location,Event.location).filter(and_(*or_search_term))    
     data={ "rows": [], "total":  query.count() }
     entries=query.limit(limit).offset(offset).all()
     for entry in entries:
         data["rows"].append({ "name" : entry.get_name(),
-                              "editlink" : button_string.format(url_for('main.EditEvent',event_id=entry.id))
+                              "editlink" : button_string.format(url_for('main.EditEvent',event_id=entry.id)),
+                               "deletelink" : delete_button_string.format('Event',entry.id)
                              })
     return jsonify(data)  
 

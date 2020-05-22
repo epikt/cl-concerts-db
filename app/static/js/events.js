@@ -30,11 +30,110 @@ function deleteParticipant(participant_id)
 {
     $.post('/api/participant/delete', { 'participant_id':participant_id } ).done( function(msg) { 
             $('#table-participants').bootstrapTable('refresh');
-            $('#table-performance-participant').bootstrapTable('refresh'); } )
+            $('#table-performance-participant').bootstrapTable('refresh');
+            $("#participant").val('').trigger('change');
+            $("#performance").val('').trigger('change');
+            
+             } )
     .fail( function(xhr, textStatus, errorThrown) {
         flash(xhr.responseText,'error');
     });    
+};
+
+
+
+function deleteElement(model,id)
+{
+    $.post('/api/delete/'+model+'/'+id ).done( 
+        function() {
+            flash("Elemento eliminado exitosamente","info")
+            $("#show-list-table").bootstrapTable('refresh');
+            })
+        .fail( 
+           function(xhr, textStatus, errorThrown) {
+             flash(xhr.responseText,'error');
+          }  );
+               
 }
+
+
+function checkDeleteElement(model,id)
+{
+    //deleteElementModal()
+    $.post('/api/deletecheck/'+model+'/'+id  ).done( 
+        function(data) { 
+          if (data.hard_deps){
+            BootstrapDialog.show(
+            {
+              message: data.hard_deps,
+              buttons: [
+                {
+                  label: 'Cerrar',
+                  action: function(dialogItself){
+                            dialogItself.close();
+                            }
+                }
+               ]
+              });
+             }  
+            else if (data.soft_deps) {
+            BootstrapDialog.show(
+            {
+              message: data.soft_deps,
+              buttons: [
+                {
+                  label: 'Sí, eliminar',
+                  cssClass: 'btn-primary',
+                  action: function(dialogItself){
+                           deleteElement(model,id)
+                           dialogItself.close();
+                          }
+                },
+                {
+                  label: 'Cancelar',
+                  action: function(dialogItself){
+                          dialogItself.close();
+                          }
+                }
+               ]
+              });
+             } else {
+             no_deps_message='<h4>¿Está seguro que quiere eliminar este objeto?</h4>'
+             if (model == 'Event' || model == 'MusicalEnsemble')
+             {
+                 no_deps_message=no_deps_message+'<br>Todos los archivos asociados serán eliminados'
+             }
+             BootstrapDialog.show(
+             
+            {
+              message: no_deps_message,
+              buttons: [
+                {
+                  label: 'Sí, eliminar',
+                  cssClass: 'btn-primary',
+                  action: function(dialogItself){
+                           deleteElement(model,id)
+                           dialogItself.close();
+                          }
+                },
+                {
+                  label: 'Cancelar',
+                  action: function(dialogItself){
+                          dialogItself.close();
+                          }
+                }
+               ]
+              });            
+              
+          
+          }
+       }
+    ).fail( function(xhr, textStatus, errorThrown) {
+        flash(xhr.responseText,'error');
+    });    
+}
+
+
 
 function addMusicalEnsembleToEvent(event_id)
 {
@@ -165,6 +264,8 @@ function deletePerformance(performance_id)
     $.post('/api/performance/delete', { 'performance_id':performance_id } ).done( function(msg) { 
             $('#table-musical-pieces').bootstrapTable('refresh');
             $('#table-performance-participant').bootstrapTable('refresh');
+            $("#participant").val('').trigger('change');
+            $("#performance").val('').trigger('change');
              } )
     .fail( function(xhr, textStatus, errorThrown) {
         flash(xhr.responseText,"error");
@@ -260,7 +361,10 @@ function deleteFileCol(value, row, index){
 function deletePerformanceDetail(performance_id,participant_id)
 {
     $.post('/api/performancedetail/delete', { 'performance_id':performance_id , 'participant_id': participant_id } ).done( function(msg) { 
-            $('#table-performance-participant').bootstrapTable('refresh'); } )
+            $('#table-performance-participant').bootstrapTable('refresh'); 
+            $("#participant").val('').trigger('change');
+            $("#performance").val('').trigger('change');
+            } )
     .fail( function(xhr, textStatus, errorThrown) {
         flash(xhr.responseText,"error");
     });    
